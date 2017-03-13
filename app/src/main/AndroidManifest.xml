@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.lx.minimusic">
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <application
+        android:name=".app.MiniMusicApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/app_logo2"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".SplashActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Light.NoTitleBar.Fullscreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleTask"
+            >
+        </activity>
+
+        <service
+            android:name=".service.PlayService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+
+        <activity android:name=".MusicPlayActivity">
+        </activity>
+        <activity
+            android:name=".LikeMusicActivity"
+            android:theme="@style/AppTheme2"
+            >
+        </activity>
+        <activity
+            android:name=".PlayRecordActivity"
+            android:theme="@style/AppTheme2"
+            >
+        </activity>
+    </application>
+
+</manifest>

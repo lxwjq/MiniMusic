@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_like_music"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.lx.minimusic.LikeMusicActivity">
+
+    <TextView
+        android:id="@+id/tv_record"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FF3F9FE0"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="点击任意一首歌曲可以播放你喜欢的列表"
+        android:textColor="#fff"
+        android:textSize="15sp"/>
+
+    <ListView
+        android:id="@+id/lv_record_music"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+</LinearLayout>

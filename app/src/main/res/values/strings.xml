@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">迷你音乐</string>
+    <string name="random">随机播放</string>
+    <string name="single">单曲循环</string>
+    <string name="order">顺序播放</string>
+    <string name="my_like">我的收藏</string>
+    <string name="record">最近播放</string>
+    <string name="seache">搜索</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>
