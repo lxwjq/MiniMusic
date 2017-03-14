@@ -29,7 +29,7 @@ public class DownLoadUtils {
 
     public static final String DOWNLOAD_URL = "/download?__o=%2Fsearch%2Fsong";
     public static final int SUCCESS_LRC = 1;  //下载歌词成功
-    private static final int FAILED_LRC = 2;  //下载歌词失败
+    public static final int FAILED_LRC = 2;  //下载歌词失败
     private static final int SUCCESS_MP3 = 3;//下载歌曲成功
     private static final int FAILED_MP3 = 4;//下载歌曲失败
 
@@ -88,7 +88,6 @@ public class DownLoadUtils {
                         }
                         break;
                     case GET_MP3_URL:
-                        System.out.println(msg.obj);
                         downloadMusic(seachResult, (String) msg.obj, this);
                         break;
                     case GET_FAILED_MP3_URL:
@@ -182,13 +181,11 @@ public class DownLoadUtils {
             @Override
             public void run() {
                 try {
-
                     //获取歌曲的url
                     String url = Constant.BAIDU_SERVICE
                             + "/song/" + seachResult.getUrl().
                             substring(seachResult.getUrl().lastIndexOf("/") + 1) + DOWNLOAD_URL;
 
-                    System.out.println("url:===" + url);
 
                     Document document = Jsoup.connect(url).userAgent(Constant.USER_AGENT).timeout(6000).get();
 
@@ -243,16 +240,15 @@ public class DownLoadUtils {
             public void run() {
                 try {
                     Document doc = Jsoup.connect(url).userAgent(Constant.USER_AGENT).timeout(6000).get();
-                    Elements lrcTag = doc.select("dic.lyric-content");
-                    String lrcURL = lrcTag.attr("data-lrcling");
-
+                    Elements lrcTag = doc.select("div.lyric-content");
+                    String lrcURL = lrcTag.attr("data-lrclink");
                     File lrcDriFile = new File(Environment.getExternalStorageDirectory() + Constant.DIR_LRC);
 
                     if (!lrcDriFile.exists()) {
                         lrcDriFile.mkdirs();
                     }
 
-                    lrcURL = Constant.BAIDU_SERVICE + lrcURL;
+
                     String target = lrcDriFile + "/" + musicName + ".lrc";
 
                     OkHttpClient client = new OkHttpClient();

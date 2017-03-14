@@ -1,5 +1,6 @@
 package com.lx.minimusic.utils;
 
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
@@ -30,7 +31,8 @@ public class MediaUtils {
     public static List<Mp3Info> getMusicData(Context context) {
         List<Mp3Info> list = new ArrayList<Mp3Info>();
         // 媒体库查询语句（写一个工具类MusicUtils）
-        Cursor cursor = context.getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null, null,
+        ContentResolver contentResolver = context.getContentResolver();
+        Cursor cursor = contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null, null,
                 null, MediaStore.Audio.AudioColumns.IS_MUSIC);
         if (cursor != null) {
             while (cursor.moveToNext()) {

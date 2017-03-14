@@ -3,6 +3,7 @@ package com.lx.minimusic;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -19,20 +20,37 @@ import com.lidroid.xutils.exception.DbException;
 import com.lx.minimusic.app.MiniMusicApplication;
 import com.lx.minimusic.base.BaseActivity;
 import com.lx.minimusic.bean.Mp3Info;
+import com.lx.minimusic.bean.SeachResult;
 import com.lx.minimusic.service.PlayService;
+import com.lx.minimusic.utils.Constant;
+import com.lx.minimusic.utils.DownLoadUtils;
 import com.lx.minimusic.utils.MediaUtils;
+import com.lx.minimusic.utils.SearchMusicUtils;
+import com.lx.minimusic.utils.ToastUtils;
+import com.lx.minimusic.view.DefaultLrcBuilder;
+import com.lx.minimusic.view.ILrcBuilder;
+import com.lx.minimusic.view.ILrcView;
+import com.lx.minimusic.view.LrcRow;
+import com.lx.minimusic.view.LrcView;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.List;
 
 import static com.lx.minimusic.R.id.iv_play_start;
 
 public class MusicPlayActivity extends BaseActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
 
     private static final String TAG = "MusicPlayActivity";
+    private static final int UPDATE_LRC = 0x20;  //更新歌词
+    private static final int UPDATE_TIEM = 0x10;  //更新播放时间的标记
     private SeekBar mSbPlay;
-    private static final int TIME_UPDATE = 0;
+
     private TextView mTvEndTime, mTvPlayName, mTvStartTime;
     private ImageView mIvPlayNext, mIvPlayPre, mIvPlayStart, mIvPlayControl, mIcPlayIcon;
     private MiniMusicApplication mApplication;
-
 
     private Handler mHandler = new Handler() {
         @Override
@@ -40,8 +58,17 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
             super.handleMessage(msg);
 
             switch (msg.what) {
-                case TIME_UPDATE:
-                    MusicPlayActivity.this.mTvStartTime.setText(MediaUtils.formatTime(msg.arg1));
+                case UPDATE_TIEM:
+                    MusicPlayActivity.this.mTvStartTime.setText(MediaUtils.formatTime((Integer) msg.obj));
+                    break;
+                case UPDATE_LRC:
+                    MusicPlayActivity.this.mLrcView.seekLrcToTime((int) msg.obj);
+                    break;
+                case DownLoadUtils.SUCCESS_LRC:
+                    MusicPlayActivity.this.loadLRC(new File((String) msg.obj));
+                    break;
+                case DownLoadUtils.FAILED_LRC:
+                    ToastUtils.showToast(MusicPlayActivity.this, "歌词下载失败");
                     break;
             }
         }
@@ -51,14 +78,13 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
     private ImageView mIvLike;
     private RelativeLayout mRlMusicPlay;
     private RelativeLayout mRlLrcPlay;
+    private LrcView mLrcView;
 
     @Override
     public void publish(int progress) {
-//        mTvStartTime.setText(MediaUtils.formatTime(progress));
-        Message message = mHandler.obtainMessage(TIME_UPDATE);
-        message.arg1 = progress;
-        mHandler.sendMessage(message);
+        mHandler.obtainMessage(UPDATE_TIEM, progress).sendToTarget();
         mSbPlay.setProgress(progress);
+        mHandler.obtainMessage(UPDATE_LRC, progress).sendToTarget();
     }
 
     @Override
@@ -101,17 +127,30 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
                             where("mp3InfoId", "=", mp3Info.id));
             if (likeInfo == null) {
                 mIvLike.setImageResource(R.drawable.a_l);
-                Log.e(TAG, "不是收藏");
             } else {
                 if (likeInfo.getIsLike() == 1) {
                     mIvLike.setImageResource(R.drawable.a_m);
-                    Log.e(TAG, "likeInfo的信息" + likeInfo.toString() + ": " + mp3Info.getMp3InfoId());
-                    Log.e(TAG, "是收藏");
                 }
             }
 
         } catch (DbException e) {
             e.printStackTrace();
+        }
+
+        String songName = mp3Info.getTitle();
+        String lrcPath = Environment.getExternalStorageDirectory() + Constant.DIR_LRC + "/" + songName + ".lrc";
+        File lrcFile = new File(lrcPath);
+        if (!lrcFile.exists()) {
+            SearchMusicUtils.getInstance().setListener(new SearchMusicUtils.OnSearchResultListener() {
+                @Override
+                public void onSearchResult(List<SeachResult> seachResults) {
+                    SeachResult seachResult = seachResults.get(0);
+                    String url = Constant.BAIDU_SERVICE + seachResult.getUrl();
+                    DownLoadUtils.getInstance().downloadLRC(url, seachResult.getMusicName(), mHandler);
+                }
+            }).search(songName + "" + mp3Info.getArtist(), 1);
+        } else {
+            loadLRC(lrcFile);
         }
 
     }
@@ -154,6 +193,7 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         mIvLike = (ImageView) findViewById(R.id.iv_like);
         mRlMusicPlay = (RelativeLayout) findViewById(R.id.rl_music_play);
         mRlLrcPlay = (RelativeLayout) findViewById(R.id.rl_lrc_play);
+        mLrcView = (LrcView) findViewById(R.id.lrv_music);
 
         mIvPlayStart.setOnClickListener(this);
         mIvPlayNext.setOnClickListener(this);
@@ -164,6 +204,19 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
         mIvLike.setOnClickListener(this);
         mRlMusicPlay.setOnClickListener(this);
         mRlLrcPlay.setOnClickListener(this);
+
+        mLrcView.setListener(new ILrcView.LrcViewListener() {
+            @Override
+            public void onLrcSeeked(int newPosition, LrcRow row) {
+                if (mPlayService.isPlaying()) {
+                    mLrcView.seekLrcToTime(row.time);
+                }
+            }
+        });
+
+        mLrcView.setLoadingTipText("正在加载歌词");
+        mLrcView.setBackgroundResource(R.mipmap.jb_bg);
+        mLrcView.getBackground().setAlpha(150);
     }
 
 
@@ -268,9 +321,13 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
                 break;
 
             case R.id.rl_lrc_play:
+                mRlLrcPlay.setVisibility(View.GONE);
+                mRlMusicPlay.setVisibility(View.VISIBLE);
                 break;
 
             case R.id.rl_music_play:
+                mRlMusicPlay.setVisibility(View.GONE);
+                mRlLrcPlay.setVisibility(View.VISIBLE);
                 break;
         }
     }
@@ -318,5 +375,30 @@ public class MusicPlayActivity extends BaseActivity implements View.OnClickListe
 
         overridePendingTransition(R.anim.next_in_home_up, R.anim.next_out_home_up);
         finish();
+    }
+
+    /**
+     * 加载歌词
+     *
+     * @param lrcFile 本地的歌词文件
+     */
+    public void loadLRC(File lrcFile) {
+        StringBuffer buf = new StringBuffer(1024 * 10);
+        char[] chars = new char[1024];
+
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(lrcFile)));
+            int len = -1;
+            while ((len = in.read(chars)) != -1) {
+                buf.append(chars, 0, len);
+            }
+
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        ILrcBuilder builder = new DefaultLrcBuilder();
+        List<LrcRow> rows = builder.getLrcRows(buf.toString());
+        mLrcView.setLrc(rows);
     }
 }

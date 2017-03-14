@@ -100,7 +100,6 @@ public class SearchMusicUtils {
                     timeout(60 * 1000).get();
 
             Elements songTitle = doc.select("div.song-item.clearfix");
-            System.out.println("songTitle:" + songTitle.size());
 
             Elements songInfos;
             ArrayList<SeachResult> seachResults = new ArrayList<SeachResult>();
@@ -109,8 +108,6 @@ public class SearchMusicUtils {
             for (int i = 0; i < songTitle.size(); i++) {
                 Element song;
                 song = songTitle.get(i);
-                System.out.println(i);
-                System.out.println("song:" + song);
                 songInfos = song.getElementsByTag("a");
                 SeachResult seachResult = new SeachResult();
 
@@ -143,7 +140,6 @@ public class SearchMusicUtils {
                 }
 
                 seachResults.add(seachResult);
-                System.out.println(seachResults);
 
             }
             return seachResults;

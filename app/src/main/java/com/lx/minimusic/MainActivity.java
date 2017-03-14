@@ -42,6 +42,7 @@ import com.lx.minimusic.app.MiniMusicApplication;
 import com.lx.minimusic.base.BaseActivity;
 import com.lx.minimusic.fragment.MyMusicFragment;
 import com.lx.minimusic.fragment.NetMusicFragment;
+import com.lx.minimusic.service.PlayService;
 
 public class MainActivity extends BaseActivity {
 
@@ -67,14 +68,13 @@ public class MainActivity extends BaseActivity {
 
     @Override
     public void onChange(int postion) {
-        if (pager.getCurrentItem() == 0) {
-            //本地Fragment
-            mMyMusicFragment.initData();
-            Log.w(TAG, "mMyMusicFragment初始化完成");
-            mMyMusicFragment.changeUIState(postion);
-        } else if (pager.getCurrentItem() == 1) {
-            //网络Fragment
+        if (mMyMusicFragment == null) {
+            Log.e(TAG, "mMyMusicFragment == null");
         }
+
+        mMyMusicFragment.initData();
+        mMyMusicFragment.changeUIState(postion);
+
     }
 
     @Override
@@ -135,6 +135,10 @@ public class MainActivity extends BaseActivity {
             case R.id.often:
                 Intent recordIntent = new Intent(this, PlayRecordActivity.class);
                 startActivity(recordIntent);
+                break;
+            case R.id.exit:
+                stopService(new Intent(this, PlayService.class));
+                finish();
                 break;
         }
 
@@ -247,6 +251,7 @@ public class MainActivity extends BaseActivity {
                 if (mMyMusicFragment == null) {
                     mMyMusicFragment = MyMusicFragment.newInstance();
                 }
+                Log.e(TAG, "mMyMusicFragment初始化完成");
                 return mMyMusicFragment;
             } else if (position == 1) {
                 if (mNetMusicFragment == null) {

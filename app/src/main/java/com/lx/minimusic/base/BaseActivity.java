@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 
 import com.lx.minimusic.service.PlayService;
 
@@ -17,6 +18,7 @@ import com.lx.minimusic.service.PlayService;
 
 public abstract class BaseActivity extends FragmentActivity {
 
+    private static final String TAG = "BaseActivity";
     public PlayService mPlayService;
     private boolean isBound = false;
 
@@ -61,6 +63,7 @@ public abstract class BaseActivity extends FragmentActivity {
     };
 
     public void bindPlayService() {
+        Log.e(TAG, "bindPlayService");
         if (!isBound) {
             Intent intent = new Intent(this, PlayService.class);
             bindService(intent, conn, Context.BIND_AUTO_CREATE);

@@ -23,6 +23,7 @@ import com.lx.minimusic.MainActivity;
 import com.lx.minimusic.MusicPlayActivity;
 import com.lx.minimusic.R;
 import com.lx.minimusic.bean.Mp3Info;
+import com.lx.minimusic.service.PlayService;
 import com.lx.minimusic.utils.MediaUtils;
 
 import java.util.List;
@@ -50,8 +51,8 @@ public class MyMusicFragment extends Fragment {
     private ImageView mIvNext;
 
     private boolean isPause = false;
-    private SwipeRefreshLayout mSwipeContainer;
     private MyMusicAdapter mAdapter;
+    private SwipeRefreshLayout mSwipeContainer;
 
     /**
      * @return 返回一个MyMusicFragment对象
@@ -67,10 +68,11 @@ public class MyMusicFragment extends Fragment {
         mContext = (MainActivity) context;
     }
 
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
+        mContext.bindPlayService();
         View view = inflater.inflate(R.layout.my_music_list_layout, null);
         //初始化布局
         initUI(view);
@@ -129,7 +131,6 @@ public class MyMusicFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        mContext.bindPlayService();
     }
 
     @Override
@@ -151,6 +152,7 @@ public class MyMusicFragment extends Fragment {
         mTvSongName = (TextView) view.findViewById(tv_song_name);
         mTvSinger = (TextView) view.findViewById(tv_singer);
         mSwipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
+
 
         mSwipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -287,5 +289,12 @@ public class MyMusicFragment extends Fragment {
             Bitmap musicBitemp = MediaUtils.getMusicBitemp(mContext, mp3Info.id, mp3Info.albumId);
             mIvMusicIcon.setImageBitmap(musicBitemp);
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mContext.stopService(new Intent(mContext, PlayService.class));
+        mContext.finish();
     }
 }

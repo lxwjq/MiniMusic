@@ -8,5 +8,9 @@
         android:id="@+id/often"
         android:icon="@drawable/ic_action_user"
         android:title="最近播放"/>
+    <item
+        android:id="@+id/exit"
+        android:icon="@drawable/ic_action_user"
+        android:title="退出"/>
 
 </menu>
